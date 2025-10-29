@@ -1,0 +1,330 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  jenkins-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "Jenkins CI/CD Dashboard",
+        "tags": ["jenkins", "cicd"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Total Builds",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(jenkins_builds_total)",
+                "legendFormat": "Total Builds"
+              }
+            ],
+            "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 2,
+            "title": "Success Rate",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "sum(jenkins_builds_success_total) / sum(jenkins_builds_total) * 100",
+                "legendFormat": "Success Rate"
+              }
+            ],
+            "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 3,
+            "title": "Average Build Time",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "avg(jenkins_builds_duration_milliseconds_summary / 1000)",
+                "legendFormat": "Avg Build Time (s)"
+              }
+            ],
+            "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 4,
+            "title": "Failed Builds (Last 24h)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(jenkins_builds_failed_total[24h]))",
+                "legendFormat": "Failed Builds"
+              }
+            ],
+            "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 5,
+            "title": "Build Success/Failure Trend",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(jenkins_builds_success_total[5m])",
+                "legendFormat": "Success"
+              },
+              {
+                "expr": "rate(jenkins_builds_failed_total[5m])",
+                "legendFormat": "Failed"
+              }
+            ],
+            "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8}
+          },
+          {
+            "id": 6,
+            "title": "Pipeline Execution Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "jenkins_builds_duration_milliseconds_summary / 1000",
+                "legendFormat": "{{job}}"
+              }
+            ],
+            "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8}
+          }
+        ]
+      }
+    }
+
+  argocd-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "ArgoCD GitOps Dashboard",
+        "tags": ["argocd", "gitops"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Total Applications",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "count(argocd_app_info)",
+                "legendFormat": "Total Apps"
+              }
+            ],
+            "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 2,
+            "title": "Synced Applications",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "count(argocd_app_sync_status{sync_status=\"Synced\"})",
+                "legendFormat": "Synced"
+              }
+            ],
+            "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 3,
+            "title": "Healthy Applications",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "count(argocd_app_health_status{health_status=\"Healthy\"})",
+                "legendFormat": "Healthy"
+              }
+            ],
+            "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 4,
+            "title": "Sync Failures (Last 24h)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(argocd_app_sync_total{phase=\"Failed\"}[24h]))",
+                "legendFormat": "Sync Failures"
+              }
+            ],
+            "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 5,
+            "title": "Application Sync Status",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "count by (sync_status) (argocd_app_sync_status)",
+                "legendFormat": "{{sync_status}}"
+              }
+            ],
+            "gridPos": {"x": 0, "y": 4, "w": 8, "h": 8}
+          },
+          {
+            "id": 6,
+            "title": "Application Health Status",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "count by (health_status) (argocd_app_health_status)",
+                "legendFormat": "{{health_status}}"
+              }
+            ],
+            "gridPos": {"x": 8, "y": 4, "w": 8, "h": 8}
+          },
+          {
+            "id": 7,
+            "title": "Sync History",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(argocd_app_sync_total[5m])",
+                "legendFormat": "{{name}} - {{phase}}"
+              }
+            ],
+            "gridPos": {"x": 16, "y": 4, "w": 8, "h": 8}
+          }
+        ]
+      }
+    }
+
+  application-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "Fresh Chicken Application Dashboard",
+        "tags": ["springboot", "application"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "HTTP Requests Total",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"production\"}[5m]))",
+                "legendFormat": "Requests/s"
+              }
+            ],
+            "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 2,
+            "title": "Average Response Time",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{namespace=\"production\"}[5m])) * 1000",
+                "legendFormat": "P95 (ms)"
+              }
+            ],
+            "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 3,
+            "title": "Error Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(rate(http_server_requests_seconds_count{namespace=\"production\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{namespace=\"production\"}[5m])) * 100",
+                "legendFormat": "Error %"
+              }
+            ],
+            "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 4,
+            "title": "Active Pods",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "count(kube_pod_info{namespace=\"production\",pod=~\"fresh-chicken.*\"})",
+                "legendFormat": "Pods"
+              }
+            ],
+            "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4}
+          },
+          {
+            "id": 5,
+            "title": "HTTP Request Rate by Status",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum by (status) (rate(http_server_requests_seconds_count{namespace=\"production\"}[5m]))",
+                "legendFormat": "Status {{status}}"
+              }
+            ],
+            "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8}
+          },
+          {
+            "id": 6,
+            "title": "Response Time (P50, P95, P99)",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.50, rate(http_server_requests_seconds_bucket{namespace=\"production\"}[5m])) * 1000",
+                "legendFormat": "P50"
+              },
+              {
+                "expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{namespace=\"production\"}[5m])) * 1000",
+                "legendFormat": "P95"
+              },
+              {
+                "expr": "histogram_quantile(0.99, rate(http_server_requests_seconds_bucket{namespace=\"production\"}[5m])) * 1000",
+                "legendFormat": "P99"
+              }
+            ],
+            "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8}
+          },
+          {
+            "id": 7,
+            "title": "JVM Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "jvm_memory_used_bytes{namespace=\"production\",area=\"heap\"} / jvm_memory_max_bytes{namespace=\"production\",area=\"heap\"} * 100",
+                "legendFormat": "Heap Usage %"
+              }
+            ],
+            "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8}
+          },
+          {
+            "id": 8,
+            "title": "JVM GC Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(jvm_gc_pause_seconds_sum{namespace=\"production\"}[5m])",
+                "legendFormat": "{{action}} - {{cause}}"
+              }
+            ],
+            "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8}
+          },
+          {
+            "id": 9,
+            "title": "Database Connection Pool",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "hikaricp_connections_active{namespace=\"production\"}",
+                "legendFormat": "Active Connections"
+              },
+              {
+                "expr": "hikaricp_connections_idle{namespace=\"production\"}",
+                "legendFormat": "Idle Connections"
+              }
+            ],
+            "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8}
+          },
+          {
+            "id": 10,
+            "title": "Cache Hit Rate",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "sum(rate(cache_gets{namespace=\"production\",result=\"hit\"}[5m])) / sum(rate(cache_gets{namespace=\"production\"}[5m])) * 100",
+                "legendFormat": "Cache Hit %"
+              }
+            ],
+            "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8}
+          }
+        ]
+      }
+    }

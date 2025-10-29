@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alert-rules
+  namespace: monitoring
+data:
+  alert-rules.yml: |
+    groups:
+      # Application Alerts
+      - name: application_alerts
+        interval: 30s
+        rules:
+          # Pod Restart Alert
+          - alert: PodRestarting
+            expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod {{ $labels.pod }} is restarting frequently"
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $value }} times in the last 15 minutes."
+
+          # High CPU Usage
+          - alert: HighCPUUsage
+            expr: sum(rate(container_cpu_usage_seconds_total{namespace="production"}[5m])) by (pod) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU usage detected on {{ $labels.pod }}"
+              description: "Pod {{ $labels.pod }} CPU usage is above 80% (current: {{ $value }})"
+
+          # High Memory Usage
+          - alert: HighMemoryUsage
+            expr: sum(container_memory_working_set_bytes{namespace="production"}) by (pod) / sum(container_spec_memory_limit_bytes{namespace="production"}) by (pod) > 0.85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High memory usage detected on {{ $labels.pod }}"
+              description: "Pod {{ $labels.pod }} memory usage is above 85%"
+
+          # Health Check Failed
+          - alert: HealthCheckFailed
+            expr: up{job="fresh-chicken-app"} == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Health check failed for Fresh Chicken App"
+              description: "Fresh Chicken App health check has been failing for more than 2 minutes"
+
+      # Jenkins Alerts
+      - name: jenkins_alerts
+        interval: 30s
+        rules:
+          # Jenkins Down
+          - alert: JenkinsDown
+            expr: up{job="jenkins"} == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Jenkins is down"
+              description: "Jenkins has been down for more than 2 minutes"
+
+          # Jenkins Pipeline Failure Rate
+          - alert: HighJenkinsPipelineFailureRate
+            expr: rate(jenkins_builds_failed_total[30m]) / rate(jenkins_builds_total[30m]) > 0.3
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High Jenkins pipeline failure rate"
+              description: "Jenkins pipeline failure rate is above 30% in the last 30 minutes"
+
+      # ArgoCD Alerts
+      - name: argocd_alerts
+        interval: 30s
+        rules:
+          # ArgoCD Application Sync Failed
+          - alert: ArgoCDSyncFailed
+            expr: argocd_app_sync_status{sync_status!="Synced"} == 1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "ArgoCD sync failed for {{ $labels.name }}"
+              description: "ArgoCD application {{ $labels.name }} sync status is {{ $labels.sync_status }}"
+
+          # ArgoCD Application Health Degraded
+          - alert: ArgoCDHealthDegraded
+            expr: argocd_app_health_status{health_status!="Healthy"} == 1
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "ArgoCD application health degraded for {{ $labels.name }}"
+              description: "ArgoCD application {{ $labels.name }} health status is {{ $labels.health_status }}"
+
+      # Database Alerts
+      - name: database_alerts
+        interval: 30s
+        rules:
+          # Database Connection Pool Exhausted
+          - alert: DatabaseConnectionPoolExhausted
+            expr: hikaricp_connections_active / hikaricp_connections_max > 0.9
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Database connection pool nearly exhausted"
+              description: "Database connection pool usage is above 90% (current: {{ $value }})"
+
+          # High Database Query Time
+          - alert: HighDatabaseQueryTime
+            expr: histogram_quantile(0.95, rate(spring_data_repository_invocations_seconds_bucket[5m])) > 1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High database query time detected"
+              description: "95th percentile database query time is above 1 second"
