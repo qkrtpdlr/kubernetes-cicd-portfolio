@@ -1,4 +1,4 @@
-# EKS CI/CD Pipeline Automation 🚀
+# kubernetes-cicd-infrastructure 🚀
 
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.30-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![Jenkins](https://img.shields.io/badge/Jenkins-LTS-D24939?logo=jenkins&logoColor=white)](https://www.jenkins.io/)
