@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fresh-chicken-config
+  namespace: production
+data:
+  # Spring Profile
+  SPRING_PROFILES_ACTIVE: "prod"
+  
+  # Database 설정 (RDS MySQL)
+  DB_HOST: "fresh-chicken-db.cluster-xxxxx.ap-northeast-2.rds.amazonaws.com"
+  DB_PORT: "3306"
+  DB_NAME: "freshchicken"
+  
+  # Redis 설정 (ElastiCache)
+  REDIS_HOST: "fresh-chicken-redis.xxxxx.0001.apn2.cache.amazonaws.com"
+  REDIS_PORT: "6379"
+  
+  # JVM 옵션
+  JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
